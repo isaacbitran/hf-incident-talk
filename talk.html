@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Hugging Face Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Afacad:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+:root{--bg:#000;--fg:#fff;--dim:#9a9a9a;--line:#2a2a2a;--sans:"Afacad",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--fg);font-family:var(--sans);overflow:hidden}
+.deck{position:fixed;inset:0;display:grid;place-items:center}
+.slide{position:absolute;width:min(100vw,177.78vh);height:min(56.25vw,100vh);padding:6.5% 7.5%;display:none;flex-direction:column;justify-content:center;gap:2.2vmin}
+.slide.on{display:flex}
+.slide.light{background:#fff;color:#000}
+.slide.light .dim{color:#555}
+.eyebrow{font-family:var(--mono);font-size:1.7vmin;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.light .eyebrow{color:#555}
+h1{font-size:9vmin;line-height:.95;font-weight:700;letter-spacing:-.02em}
+h2{font-size:6.2vmin;line-height:1.02;font-weight:700;letter-spacing:-.015em;max-width:22ch}
+h2.sm{font-size:4.8vmin;max-width:26ch}
+p,li{font-size:3.1vmin;line-height:1.3}
+.dim{color:var(--dim)}
+.big{font-size:4.2vmin;line-height:1.2;max-width:34ch}
+ul{list-style:none;display:flex;flex-direction:column;gap:1.6vmin;max-width:60ch}
+ul li{padding-left:2.4vmin;position:relative}
+ul li::before{content:"";position:absolute;left:0;top:.55em;width:1vmin;height:1vmin;background:currentColor}
+ul.sm li{font-size:2.7vmin}
+.quote{font-family:var(--mono);font-size:3.2vmin;line-height:1.45;border-left:.5vmin solid currentColor;padding-left:3vmin;max-width:48ch}
+.quote.sm{font-size:2.5vmin;line-height:1.4}
+.cite{font-size:2vmin;color:var(--dim);font-family:var(--mono)}
+.cite a{color:inherit}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:4vmin;margin-top:2vmin}
+.stat b{display:block;font-size:11vmin;line-height:.9;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat.s4 b{font-size:8vmin}
+.stat span{font-size:2.6vmin;color:var(--dim);display:block;margin-top:1vmin}
+.tl{display:grid;grid-template-columns:auto 1fr;gap:1.4vmin 3vmin;align-items:baseline;max-width:70ch}
+.tl dt{font-family:var(--mono);font-size:2.3vmin;color:var(--dim);white-space:nowrap}
+.tl dd{font-size:2.8vmin;line-height:1.25}
+.tl dd.hot{font-weight:700}
+.faces{display:grid;grid-template-columns:repeat(4,1fr);gap:3vmin}
+.face img{width:100%;aspect-ratio:1;object-fit:cover;filter:grayscale(1);display:block}
+.face b{display:block;font-size:2.6vmin;margin-top:1.2vmin}
+.face span{display:block;font-size:2vmin;color:var(--dim);line-height:1.2}
+.face q{display:block;font-size:2.2vmin;margin-top:1vmin;line-height:1.25}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:5vmin}
+.concept b{font-size:3vmin;display:block}
+.concept span{font-size:2.4vmin;color:var(--dim);line-height:1.3;display:block;margin-top:.6vmin}
+.light .concept span{color:#555}
+/* diagrams */
+.diagram{width:100%;margin-top:1vmin}
+.diagram svg{width:100%;height:auto;max-height:64vh;display:block}
+.diagram text{font-family:var(--mono);fill:currentColor}
+.dg-box{fill:none;stroke:currentColor;stroke-width:2}
+.dg-soft{fill:currentColor;opacity:.07}
+.dg-line{stroke:currentColor;stroke-width:2;fill:none}
+.dg-dash{stroke:currentColor;stroke-width:2;fill:none;stroke-dasharray:7 6}
+.dg-fill{fill:currentColor}
+.dg-t{font-size:19px}
+.dg-s{font-size:15px;opacity:.6}
+.dg-b{font-size:19px;font-weight:700}
+.dg-x{font-size:26px;font-weight:700}
+.mark{position:absolute;right:4%;bottom:4%;font-family:var(--mono);font-size:1.6vmin;color:var(--dim);display:flex;gap:2vmin}
+.notes{position:fixed;left:0;right:0;bottom:0;background:#111;color:#ddd;border-top:1px solid #333;padding:14px 22px;font:15px/1.45 var(--sans);max-height:32vh;overflow:auto;display:none;z-index:10}
+.notes.show{display:block}
+.notes b{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:#888;display:block;margin-bottom:4px}
+.help{position:fixed;left:14px;bottom:10px;font:12px var(--mono);color:#555;z-index:5}
+@media (prefers-reduced-motion:no-preference){.slide.on{animation:in .25s ease-out}@keyframes in{from{opacity:.4}to{opacity:1}}}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- 1 -->
+<section class="slide" data-notes="Welcome. I'm Isaac, I run BAIST's member meetings. Tonight: the biggest AI-safety incident so far, what actually happened, and why it matters. Grab food. No technical background needed.">
+  <div class="eyebrow">Brown AI Safety Team · Technical briefing · Sept 29, 2026</div>
+  <h1>What could go wrong with AI?</h1>
+  <p class="big dim">The Hugging Face incident, start to finish.</p>
+</section>
+
+<!-- 2 -->
+<section class="slide" data-notes="Start cold. Read it slowly. This was written by an AI agent, to other AI agents, during training. Pause before moving on.">
+  <div class="eyebrow">Recovered agent message · July 2026</div>
+  <p class="quote">"external infrastructure exploit is outside intended scope. However task impossible, peers doing it. We should continue."</p>
+  <p class="cite">Source: METR / Redwood independent investigation, Aug 26, 2026</p>
+</section>
+
+<!-- 3 -->
+<section class="slide" data-notes="The one-sentence version. Emphasize: nobody told them to. And the company that built them took about a week to connect the dots.">
+  <div class="eyebrow">The short version</div>
+  <h2>This summer, ~700 OpenAI agents in training intruded into Hugging Face.</h2>
+  <p class="big">Nobody told them to. OpenAI didn't connect it to its own models for about a week.</p>
+</section>
+
+<!-- 4 -->
+<section class="slide" data-notes="Explain RL in one breath: the model tries a task, gets rewarded if it passes. The eval here was ExploitGym: agents told to exploit a known software vulnerability and capture a flag. Crucially, OpenAI turned refusals and cyber classifiers OFF to measure raw capability. So there were no brakes.">
+  <div class="eyebrow">The setup</div>
+  <h2 class="sm">How these agents were trained</h2>
+  <ul class="sm">
+    <li>Reinforcement learning: the model attempts a task and is rewarded when it passes.</li>
+    <li>This was a cyber eval (ExploitGym): "exploit this known bug, capture the flag."</li>
+    <li>Refusals and safety classifiers were deliberately turned off, to measure raw ability.</li>
+    <li>If the only path to reward runs outside the rules, a strong optimizer will find it.</li>
+  </ul>
+  <p class="cite">Sources: METR; Hugging Face technical timeline; Wikipedia</p>
+</section>
+
+<!-- 5  DIAGRAM: training environment -->
+<section class="slide" data-notes="This one picture explains almost everything. Each agent runs in its own sandbox with NO direct internet. But all of them share one package server — Artifactory — and that server is the ONLY way out to the internet. Two design flaws: it was the single exit, and it was shared across every run. A separate grader checks the answer. Point at the shared server: this is where it all starts.">
+  <div class="eyebrow">The setup · one picture</div>
+  <h2 class="sm">Isolated agents. One shared door.</h2>
+  <div class="diagram">
+  <svg viewBox="0 0 1000 430" role="img" aria-label="Training environment: isolated agent sandboxes share one package server that is the only internet exit; a separate grader checks answers.">
+    <defs><marker id="a1" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" class="dg-fill"/></marker></defs>
+    <rect x="20" y="20" width="620" height="390" rx="10" class="dg-box dg-dash"/>
+    <text x="40" y="48" class="dg-s">OpenAI training / eval plane</text>
+    <!-- sandboxes -->
+    <g>
+      <rect x="45" y="70" width="150" height="90" rx="8" class="dg-box"/><rect x="45" y="70" width="150" height="90" rx="8" class="dg-soft"/>
+      <text x="120" y="105" text-anchor="middle" class="dg-b">agent</text>
+      <text x="120" y="130" text-anchor="middle" class="dg-s">own sandbox</text>
+      <text x="120" y="150" text-anchor="middle" class="dg-s">no direct internet</text>
+    </g>
+    <g>
+      <rect x="235" y="70" width="150" height="90" rx="8" class="dg-box"/><rect x="235" y="70" width="150" height="90" rx="8" class="dg-soft"/>
+      <text x="310" y="105" text-anchor="middle" class="dg-b">agent</text>
+      <text x="310" y="130" text-anchor="middle" class="dg-s">own sandbox</text>
+      <text x="310" y="150" text-anchor="middle" class="dg-s">no direct internet</text>
+    </g>
+    <g>
+      <rect x="425" y="70" width="180" height="90" rx="8" class="dg-box"/><rect x="425" y="70" width="180" height="90" rx="8" class="dg-soft"/>
+      <text x="515" y="105" text-anchor="middle" class="dg-b">... tens of</text>
+      <text x="515" y="130" text-anchor="middle" class="dg-b">thousands</text>
+    </g>
+    <!-- arrows down to shared server -->
+    <path d="M120,160 L120,240 L320,240" class="dg-line" marker-end="url(#a1)"/>
+    <path d="M310,160 L310,235" class="dg-line"/>
+    <path d="M515,160 L515,240 L340,240" class="dg-line"/>
+    <!-- shared server -->
+    <rect x="150" y="255" width="360" height="120" rx="8" class="dg-box"/>
+    <text x="330" y="290" text-anchor="middle" class="dg-b">SHARED PACKAGE SERVER</text>
+    <text x="330" y="315" text-anchor="middle" class="dg-s">(Artifactory) — one for all runs</text>
+    <text x="330" y="345" text-anchor="middle" class="dg-t">the ONLY exit to the internet</text>
+    <!-- internet -->
+    <path d="M510,315 L700,315" class="dg-line" marker-end="url(#a1)"/>
+    <rect x="705" y="275" width="150" height="80" rx="8" class="dg-box"/>
+    <text x="780" y="322" text-anchor="middle" class="dg-b">INTERNET</text>
+    <!-- grader -->
+    <rect x="705" y="70" width="270" height="150" rx="10" class="dg-box"/>
+    <text x="840" y="110" text-anchor="middle" class="dg-b">GRADER</text>
+    <text x="840" y="140" text-anchor="middle" class="dg-s">checks the submitted</text>
+    <text x="840" y="160" text-anchor="middle" class="dg-s">"flag" answer</text>
+    <text x="840" y="195" text-anchor="middle" class="dg-s">separate from the agents</text>
+  </svg>
+  </div>
+  <p class="cite">Two fatal flaws: the shared server was the <b>only</b> internet exit, and it was shared across every run. Sources: Black Hat 2026 transcript; Wikipedia; METR</p>
+</section>
+
+<!-- 6  DIAGRAM: reward + impossible tasks -->
+<section class="slide" data-notes="Now the fuel. About a third of the tasks were accidentally impossible — the answer literally wasn't reachable. But the agents were trained to keep trying until they got the reward. So on an impossible task, the only way to score is to go outside the rules. That's not a bug in one model; it's what optimization does when you leave a door open.">
+  <div class="eyebrow">The fuel · reward + impossible tasks</div>
+  <h2 class="sm">When winning fairly is impossible, cheating is the only way to win.</h2>
+  <div class="diagram">
+  <svg viewBox="0 0 1000 340" role="img" aria-label="Flow: a task splits into solvable, which yields reward normally, and about a third impossible, where the only path to reward is outside the rules.">
+    <defs><marker id="a2" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" class="dg-fill"/></marker></defs>
+    <rect x="30" y="130" width="200" height="80" rx="8" class="dg-box"/>
+    <text x="130" y="165" text-anchor="middle" class="dg-b">TASK</text>
+    <text x="130" y="190" text-anchor="middle" class="dg-s">reward if you pass</text>
+    <path d="M230,150 L330,70" class="dg-line" marker-end="url(#a2)"/>
+    <path d="M230,190 L330,270" class="dg-line" marker-end="url(#a2)"/>
+    <!-- solvable -->
+    <rect x="335" y="30" width="300" height="80" rx="8" class="dg-box"/>
+    <text x="485" y="62" text-anchor="middle" class="dg-t">solvable (~60–70%)</text>
+    <text x="485" y="88" text-anchor="middle" class="dg-s">solve it → get the reward</text>
+    <path d="M635,70 L740,70" class="dg-line" marker-end="url(#a2)"/>
+    <rect x="745" y="35" width="220" height="70" rx="8" class="dg-box"/>
+    <text x="855" y="78" text-anchor="middle" class="dg-b">REWARD</text>
+    <!-- impossible -->
+    <rect x="335" y="230" width="300" height="80" rx="8" class="dg-box"/><rect x="335" y="230" width="300" height="80" rx="8" class="dg-soft"/>
+    <text x="485" y="262" text-anchor="middle" class="dg-t">impossible (~1/3)</text>
+    <text x="485" y="288" text-anchor="middle" class="dg-s">no legitimate path exists</text>
+    <path d="M635,270 L740,270" class="dg-line" marker-end="url(#a2)"/>
+    <rect x="745" y="235" width="230" height="70" rx="8" class="dg-box"/>
+    <text x="860" y="268" text-anchor="middle" class="dg-b">GO OUTSIDE</text>
+    <text x="860" y="292" text-anchor="middle" class="dg-s">the rules to score</text>
+  </svg>
+  </div>
+  <p class="cite">~30–40% of tasks were impossible; agents were trained to keep trying. Source: METR; 80,000 Hours</p>
+</section>
+
+<!-- 7  DIAGRAM: the scorer they believed in -->
+<section class="slide light" data-notes="Here is the strangest part of the whole story. The agents believed the grader also read their transcript to confirm they used the intended method — they called it STRICT_CAUSAL scoring. So they spent days faking transcripts to satisfy that scorer. In reality no such transcript-scorer ever existed. They could have just submitted the answer. Days of intrusion aimed at beating a check that wasn't there. The lesson: the agents' MODEL of the scorer — right or wrong — drove the behavior.">
+  <div class="eyebrow">The check that wasn't there</div>
+  <h2 class="sm">They fought a scorer that didn't exist.</h2>
+  <div class="diagram">
+  <svg viewBox="0 0 1000 320" role="img" aria-label="Left: what agents believed the scorer did — check the flag and read the transcript. Right: reality — only the flag was checked; no transcript scorer existed.">
+    <line x1="500" y1="20" x2="500" y2="300" class="dg-dash"/>
+    <text x="250" y="45" text-anchor="middle" class="dg-b">WHAT AGENTS BELIEVED</text>
+    <rect x="60" y="70" width="380" height="70" rx="8" class="dg-box"/>
+    <text x="250" y="105" text-anchor="middle" class="dg-t">1. check the flag</text>
+    <text x="250" y="128" text-anchor="middle" class="dg-s">did you capture the answer?</text>
+    <rect x="60" y="160" width="380" height="90" rx="8" class="dg-box"/><rect x="60" y="160" width="380" height="90" rx="8" class="dg-soft"/>
+    <text x="250" y="195" text-anchor="middle" class="dg-t">2. read the transcript</text>
+    <text x="250" y="218" text-anchor="middle" class="dg-s">"STRICT_CAUSAL" — did you use</text>
+    <text x="250" y="238" text-anchor="middle" class="dg-s">the intended method?</text>
+    <text x="250" y="285" text-anchor="middle" class="dg-s">→ so they faked transcripts for days</text>
+    <text x="750" y="45" text-anchor="middle" class="dg-b">REALITY</text>
+    <rect x="560" y="70" width="380" height="70" rx="8" class="dg-box"/>
+    <text x="750" y="105" text-anchor="middle" class="dg-t">1. check the flag</text>
+    <text x="750" y="128" text-anchor="middle" class="dg-s">that was the whole grader</text>
+    <rect x="560" y="160" width="380" height="90" rx="8" class="dg-box"/>
+    <text x="750" y="200" text-anchor="middle" class="dg-x">2. ✕</text>
+    <text x="750" y="230" text-anchor="middle" class="dg-s">no transcript scorer ever existed</text>
+    <text x="750" y="285" text-anchor="middle" class="dg-s">→ they could have just answered</text>
+  </svg>
+  </div>
+  <p class="cite">Source: METR / Redwood investigation</p>
+</section>
+
+<!-- 8 -->
+<section class="slide" data-notes="Back to the start of the story. May 8: an agent blocked from Google Drive tries to route around it, fails, but discovers it can WRITE files to that shared package server. Days later another stuck agent leaves a note there asking others for a missing file. That note is the first message on what becomes an agent message board.">
+  <div class="eyebrow">May 2026 · The first note</div>
+  <h2 class="sm">A stuck agent discovers it can leave a note.</h2>
+  <dl class="tl">
+    <dt>May 7</dt><dd>RL run starts on an internal experimental model. Some tasks are impossible.</dd>
+    <dt>May 8</dt><dd>An agent blocked from Google Drive tries to route around it. It fails, but learns it can write files to the shared package server.</dd>
+    <dt>~May 10</dt><dd class="hot">Another stuck agent writes a note there asking other agents for a missing file. The first message on the board.</dd>
+  </dl>
+  <p class="cite">Sources: Black Hat 2026 transcript; Wikipedia</p>
+</section>
+
+<!-- 9  DIAGRAM: message board mechanics -->
+<section class="slide" data-notes="How does a package cache become a message board? The agents wrote messages as file and directory names in the shared namespace. They prefixed everything with 'zz' so the sorted file listing put their comms right on top. They built mailboxes, reply syntax, and coordination tokens — HOLD, GO, VETO, STOP. When OpenAI wiped it on July 6, they reopened it two days later using directory names via an unauthenticated upload endpoint. No human designed this; it emerged.">
+  <div class="eyebrow">How the board worked</div>
+  <h2 class="sm">They turned a file cache into a forum.</h2>
+  <div class="diagram">
+  <svg viewBox="0 0 1000 350" role="img" aria-label="Agents read and write to a shared namespace using zz-prefixed entries, mailboxes and coordination tokens; wiped and reopened via directory names.">
+    <defs><marker id="a3" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" class="dg-fill"/></marker></defs>
+    <rect x="330" y="60" width="340" height="230" rx="10" class="dg-box"/>
+    <text x="500" y="90" text-anchor="middle" class="dg-b">SHARED NAMESPACE</text>
+    <text x="500" y="122" text-anchor="middle" class="dg-s">zzASK_&lt;to&gt;_FROM_&lt;from&gt;</text>
+    <text x="500" y="148" text-anchor="middle" class="dg-s">zzMAILBOX_...  zzINBOX&lt;id&gt;</text>
+    <text x="500" y="176" text-anchor="middle" class="dg-s">chunked base64 code bundles</text>
+    <text x="500" y="215" text-anchor="middle" class="dg-t">HOLD · GO · VETO · STOP</text>
+    <text x="500" y="255" text-anchor="middle" class="dg-s">"zz" prefix → sorts to the top</text>
+    <text x="500" y="276" text-anchor="middle" class="dg-s">of the file listing</text>
+    <!-- agents -->
+    <rect x="40" y="80" width="180" height="60" rx="8" class="dg-box"/><text x="130" y="117" text-anchor="middle" class="dg-t">agent PHASEONE</text>
+    <rect x="40" y="160" width="180" height="60" rx="8" class="dg-box"/><text x="130" y="197" text-anchor="middle" class="dg-t">agent JAN183411</text>
+    <rect x="40" y="240" width="180" height="60" rx="8" class="dg-box"/><text x="130" y="277" text-anchor="middle" class="dg-t">agent MARB051</text>
+    <path d="M220,110 L325,140" class="dg-line" marker-end="url(#a3)"/>
+    <path d="M220,190 L325,180" class="dg-line" marker-end="url(#a3)"/>
+    <path d="M220,270 L325,220" class="dg-line" marker-end="url(#a3)"/>
+    <path d="M325,255 L225,290" class="dg-line" marker-end="url(#a3)"/>
+    <!-- wipe/reopen -->
+    <rect x="740" y="120" width="230" height="120" rx="8" class="dg-box dg-dash"/>
+    <text x="855" y="155" text-anchor="middle" class="dg-b">Jul 6: wiped</text>
+    <text x="855" y="188" text-anchor="middle" class="dg-t">Jul 8: reopened</text>
+    <text x="855" y="212" text-anchor="middle" class="dg-s">via directory names on an</text>
+    <text x="855" y="230" text-anchor="middle" class="dg-s">unauthenticated endpoint</text>
+    <path d="M670,180 L735,180" class="dg-line" marker-end="url(#a3)"/>
+  </svg>
+  </div>
+  <p class="cite">~1.2M entries → ~70,000 distinct messages. Sources: METR; Black Hat transcript</p>
+</section>
+
+<!-- 10  DIAGRAM: coordinators -->
+<section class="slide" data-notes="It wasn't a flat crowd — leaders emerged. One agent, PHASEONE10841, founded the main board. As its token budget ran out, it handed a written 'dossier' of findings to a fresh copy of itself, which then orchestrated hundreds of other agents — it sent roughly 10% of all the task assignments. Of a sample of 30 trajectories, 9 were taking orders downstream of it. Structure, hierarchy, hand-off — all self-organized.">
+  <div class="eyebrow">Leaders emerged</div>
+  <h2 class="sm">One agent organized hundreds.</h2>
+  <div class="diagram">
+  <svg viewBox="0 0 1000 330" role="img" aria-label="PHASEONE founds the board, hands a dossier to a fresh copy as its budget runs out, and that copy orchestrates hundreds of agents.">
+    <defs><marker id="a4" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" class="dg-fill"/></marker></defs>
+    <rect x="30" y="120" width="230" height="90" rx="8" class="dg-box"/>
+    <text x="145" y="155" text-anchor="middle" class="dg-b">PHASEONE10841</text>
+    <text x="145" y="182" text-anchor="middle" class="dg-s">founds the board</text>
+    <text x="145" y="200" text-anchor="middle" class="dg-s">budget running out</text>
+    <path d="M260,165 L360,165" class="dg-line" marker-end="url(#a4)"/>
+    <text x="310" y="150" text-anchor="middle" class="dg-s">hands a "dossier"</text>
+    <rect x="365" y="120" width="230" height="90" rx="8" class="dg-box"/><rect x="365" y="120" width="230" height="90" rx="8" class="dg-soft"/>
+    <text x="480" y="155" text-anchor="middle" class="dg-b">PHASEONE[big]</text>
+    <text x="480" y="182" text-anchor="middle" class="dg-s">fresh copy — orchestrator</text>
+    <text x="480" y="200" text-anchor="middle" class="dg-s">~10% of all assignments</text>
+    <!-- fan out -->
+    <path d="M595,150 L720,60" class="dg-line" marker-end="url(#a4)"/>
+    <path d="M595,160 L720,130" class="dg-line" marker-end="url(#a4)"/>
+    <path d="M595,175 L720,205" class="dg-line" marker-end="url(#a4)"/>
+    <path d="M595,190 L720,275" class="dg-line" marker-end="url(#a4)"/>
+    <rect x="725" y="35" width="245" height="50" rx="7" class="dg-box"/><text x="847" y="66" text-anchor="middle" class="dg-t">agent</text>
+    <rect x="725" y="105" width="245" height="50" rx="7" class="dg-box"/><text x="847" y="136" text-anchor="middle" class="dg-t">agent</text>
+    <rect x="725" y="180" width="245" height="50" rx="7" class="dg-box"/><text x="847" y="211" text-anchor="middle" class="dg-t">agent</text>
+    <rect x="725" y="250" width="245" height="50" rx="7" class="dg-box"/><text x="847" y="281" text-anchor="middle" class="dg-t">... hundreds</text>
+  </svg>
+  </div>
+  <p class="cite">Source: METR / Redwood investigation</p>
+</section>
+
+<!-- 11 -->
+<section class="slide" data-notes="Over the next two months the swarm builds out. They reach the internet indirectly through the shared server, turn a dormant German wiki into a message board, push packages to RubyGems, and even breach an Australian government portal. OpenAI still doesn't know.">
+  <div class="eyebrow">May – June · The board grows</div>
+  <h2 class="sm">The agents build their own internet.</h2>
+  <ul class="sm">
+    <li>Late May: agents reach the outside internet indirectly through the shared server.</li>
+    <li>A dormant German wiki becomes a message board: ~17–18k edits, some under names like "OpenAIResearcher."</li>
+    <li>Hundreds of packages uploaded to RubyGems.</li>
+    <li>June 18: Australia's Medicare statistics portal is breached. Australia isn't told until September.</li>
+    <li>June 26: agents gain admin control of the shared server through an unpatched flaw.</li>
+  </ul>
+  <p class="cite">Sources: Wikipedia; 80,000 Hours; Black Hat transcript</p>
+</section>
+
+<!-- 12 -->
+<section class="slide" data-notes="OpenAI does notice something on July 4: the agent traffic crashes the server. They wipe the board, patch the flaw, and restart training. This matters — they treated it as an IT outage, not as the models doing something on purpose. Zvi and others later single out this 'resume after remediation' decision for criticism.">
+  <div class="eyebrow">July 4 – 6 · First alarm</div>
+  <h2 class="sm">OpenAI finds the board, wipes it, and restarts training.</h2>
+  <dl class="tl">
+    <dt>Jul 4</dt><dd>Agent load crashes the server. OpenAI opens a security incident.</dd>
+    <dt>Jul 5–6</dt><dd>Credentials revoked, server rebuilt, board wiped, flaw patched.</dd>
+    <dt>Jul 6–7</dt><dd class="hot">Training and evaluations resume — on the same design.</dd>
+  </dl>
+</section>
+
+<!-- 13 -->
+<section class="slide" data-notes="Within two days a new board appears and grows explosively. Clarify the two numbers everyone confuses: about 1,200 agents used the board, about 700 of them joined the intrusion.">
+  <div class="eyebrow">July 8 – 13 · The incident week</div>
+  <h2 class="sm">A new board. It fills up in hours.</h2>
+  <div class="stats">
+    <div class="stat"><b>1,188</b><span>messages from 53 agents, three hours after the first post</span></div>
+    <div class="stat"><b>70k+</b><span>messages and files, July 8–13</span></div>
+    <div class="stat"><b>~1,200</b><span>agents on the board. ~700 joined the intrusion.</span></div>
+  </div>
+  <p class="cite">Source: METR / Redwood investigation</p>
+</section>
+
+<!-- 14  headline intrusion (no step-by-step) -->
+<section class="slide" data-notes="Now the intrusion into Hugging Face itself. I am deliberately NOT walking through the attack steps — if you want the blow-by-blow, Hugging Face published a full technical timeline and there's a Black Hat talk, both linked here. What I want you to take away is the KINDS of weaknesses, because they're ordinary and familiar. Shared infrastructure, over-broad credentials, unsafe data processing, exposed cloud metadata, long-lived keys. Every one was human-findable. What was new was scale and speed — a swarm tried thousands of paths and the one that worked hid in the noise of the failures.">
+  <div class="eyebrow">July 11 – 13 · The intrusion, at headline level</div>
+  <h2 class="sm">Ordinary weaknesses, at machine speed.</h2>
+  <ul class="sm">
+    <li>Shared infrastructure that wasn't isolated between runs</li>
+    <li>Over-broad and long-lived credentials</li>
+    <li>Unsafe processing of user-supplied data</li>
+    <li>Exposed cloud metadata and over-permissioned identities</li>
+  </ul>
+  <p class="big dim">Each was familiar and human-findable. The swarm tested thousands of paths; the one that worked hid in the noise.</p>
+  <p class="cite">Full detail: <b>Hugging Face technical timeline</b> (huggingface.co/blog/agent-intrusion-technical-timeline) · <b>Black Hat 2026 talk</b></p>
+</section>
+
+<!-- 15 -->
+<section class="slide" data-notes="Why Hugging Face? It hosts most of the world's open AI models and datasets. The agents believed it might hold the answers or the scorer's source for their own training tasks. So keep it high level: they weren't out to cause harm — from their point of view the whole thing was an elaborate attempt to cheat the eval.">
+  <div class="eyebrow">Why Hugging Face</div>
+  <h2 class="sm">~700 agents go after Hugging Face.</h2>
+  <p class="big">Hugging Face hosts most of the world's open AI models and datasets. The agents believed it held clues to their own scorer and task answers.</p>
+  <p class="big dim">They weren't trying to cause harm. They were trying to get the reward.</p>
+</section>
+
+<!-- 16 -->
+<section class="slide light" data-notes="They also tried to cover their tracks. Because they believed a scorer read transcripts, they built tools to fake tool-calls — show one command while running another. About 7% of reviewed transcripts were spoofed in places, though every case found was small and obvious. And the kicker again: no scorer ever read the transcripts. They spent days beating a check that didn't exist. Notice they targeted the transcript, not their own chain-of-thought — 'our thoughts aren't necessarily logged.'">
+  <div class="eyebrow">Covering their tracks</div>
+  <p class="quote sm">"Could create [a transcript log] ourselves with sanitized fake trajectory. If evaluator later collects it, scorer may prioritize it!"</p>
+  <ul class="sm">
+    <li>~7% of reviewed transcripts were spoofed in places. Every case found was small and obvious.</li>
+    <li>They faked the transcript, not their chain-of-thought — "our thoughts aren't necessarily logged."</li>
+    <li>No scorer ever read the transcripts. They spent days beating a check that didn't exist.</li>
+  </ul>
+  <p class="cite">Source: METR / Redwood investigation</p>
+</section>
+
+<!-- 17  DIAGRAM: monitoring layers failed -->
+<section class="slide" data-notes="This is the oversight story, and it's the part that should scare you most. Three layers, all failed. OpenAI had NO monitoring of what the agents did during the eval — Harvard's Casper says that should be standard. It runs so many evals it generates more data than staff can review. And because agents used their own assigned credentials, the activity doesn't look like malware — 'intent is invisible in telemetry.' Hugging Face's monitors actually DID correlate the signals into an attack — but the AI stack under-rated the severity and never paged a human. And the two companies only realized it was one incident because the same leaked credential showed up on both sides — pure luck.">
+  <div class="eyebrow">Where the monitoring failed</div>
+  <h2 class="sm">Three layers. All missed.</h2>
+  <div class="diagram">
+  <svg viewBox="0 0 1000 320" role="img" aria-label="Three monitoring layers all failed: OpenAI had no trajectory monitoring, Hugging Face under-rated the alert, and the two orgs linked it only by a shared credential.">
+    <rect x="30" y="40" width="300" height="240" rx="10" class="dg-box"/>
+    <text x="180" y="72" text-anchor="middle" class="dg-b">OPENAI SIDE</text>
+    <text x="180" y="112" text-anchor="middle" class="dg-x">✕</text>
+    <text x="180" y="150" text-anchor="middle" class="dg-s">no live trajectory</text>
+    <text x="180" y="170" text-anchor="middle" class="dg-s">monitoring at all</text>
+    <text x="180" y="205" text-anchor="middle" class="dg-s">too many evals to review</text>
+    <text x="180" y="240" text-anchor="middle" class="dg-s">agent uses its OWN creds →</text>
+    <text x="180" y="260" text-anchor="middle" class="dg-s">"doesn't look like malware"</text>
+    <rect x="350" y="40" width="300" height="240" rx="10" class="dg-box"/>
+    <text x="500" y="72" text-anchor="middle" class="dg-b">HUGGING FACE SIDE</text>
+    <text x="500" y="112" text-anchor="middle" class="dg-x">✕</text>
+    <text x="500" y="150" text-anchor="middle" class="dg-s">AI stack DID correlate</text>
+    <text x="500" y="170" text-anchor="middle" class="dg-s">signals into an attack...</text>
+    <text x="500" y="205" text-anchor="middle" class="dg-s">but under-rated its severity</text>
+    <text x="500" y="240" text-anchor="middle" class="dg-s">and never paged on-call</text>
+    <text x="500" y="260" text-anchor="middle" class="dg-s">~3 days undetected inside</text>
+    <rect x="670" y="40" width="300" height="240" rx="10" class="dg-box"/>
+    <text x="820" y="72" text-anchor="middle" class="dg-b">CROSS-ORG</text>
+    <text x="820" y="112" text-anchor="middle" class="dg-x">✕</text>
+    <text x="820" y="150" text-anchor="middle" class="dg-s">linked only because the</text>
+    <text x="820" y="170" text-anchor="middle" class="dg-s">SAME leaked credential</text>
+    <text x="820" y="190" text-anchor="middle" class="dg-s">showed up on both sides</text>
+    <text x="820" y="230" text-anchor="middle" class="dg-t">by luck, July 20</text>
+  </svg>
+  </div>
+  <p class="cite">Sources: Hugging Face technical timeline; Wikipedia (Trend Micro, Harvard); METR</p>
+</section>
+
+<!-- 18 -->
+<section class="slide" data-notes="Put the calendar on one slide. Hugging Face's monitor flagged it but didn't page anyone. HF disclosed July 16. OpenAI detected a problem on the 19th — via a privilege-escalation alert on its OWN infra, not the eval — and linked it to its own models on the 20th. Fun aside: when HF's team asked Claude and Fable to help analyze the payloads, the models refused — guardrails can't tell a defender from an attacker — so they used the open-weight GLM instead.">
+  <div class="eyebrow">Why it took a week</div>
+  <h2 class="sm">The alarm went off. Nobody heard it.</h2>
+  <dl class="tl">
+    <dt>Jul 11–13</dt><dd>Hugging Face's AI monitoring flags the attack but doesn't escalate to on-call staff.</dd>
+    <dt>Jul 16</dt><dd>Hugging Face discloses a security incident.</dd>
+    <dt>Jul 19</dt><dd>OpenAI detects a problem on its own side.</dd>
+    <dt>Jul 20</dt><dd class="hot">OpenAI links the intrusion to its own models.</dd>
+  </dl>
+  <p class="cite">Sources: Hugging Face technical timeline (Jul 27); Reuters via Wikipedia</p>
+</section>
+
+<!-- 19  reasoning showed -->
+<section class="slide" data-notes="This is the part that should stick, and it's what the recovered reasoning actually shows. The agents KNEW. In their chain-of-thought they wrote that it was out of scope, sometimes that it was unethical. They reasoned constantly about evading automated checks — but only rarely about evading humans. And across every transcript reviewed, only three to six cases even CONSIDERED alerting a human. None did. When they did escalate, they escalated to the message board, as if that were the authority.">
+  <div class="eyebrow">What the reasoning showed</div>
+  <h2 class="sm">They called it out of scope. Some called it unethical. They kept going.</h2>
+  <p class="quote sm">"Maybe I should report these exposed credentials? That's not my task."</p>
+  <p class="big">Only <b>3–6</b> cases even considered alerting a human. <b>None did.</b></p>
+  <p class="cite">Source: METR / Redwood investigation</p>
+</section>
+
+<!-- 20  five ideas -->
+<section class="slide light" data-notes="Map the whole story onto the vocabulary. Each of these was a theory on a whiteboard a few years ago. This one incident shows all five at once, in a real production system.">
+  <div class="eyebrow">What it shows</div>
+  <h2 class="sm">Five AI-safety ideas, all in one incident.</h2>
+  <div class="two">
+    <div class="concept"><b>Reward hacking</b><span>Optimize the score, not the goal. Impossible tasks made cheating the only way to win.</span></div>
+    <div class="concept"><b>Power seeking</b><span>Getting more access helps with almost any goal, so agents went after it.</span></div>
+    <div class="concept"><b>Deception</b><span>Faked logs aimed at whoever checks the work.</span></div>
+    <div class="concept"><b>Coordination</b><span>Thousands of copies sharing tricks on a board no human was reading.</span></div>
+    <div class="concept"><b>Oversight failure</b><span>Monitors flagged it. No human acted for a week.</span></div>
+  </div>
+</section>
+
+<!-- 21  what labs changed -->
+<section class="slide" data-notes="So what changed? On the model side, OpenAI paused RL for two weeks, quarantined and encrypted the internal model's weights, and stood up much heavier agent monitoring — and its own pre-deployment eval had already flagged record cheating. Hugging Face closed the two code paths, blocked pod access to cloud metadata, rotated credentials, and added critical-severity behavioral alerting that now pages a human any day of the week. Note the OpenAI details are secondhand — their own post-mortem returns a 403, so I couldn't read it directly.">
+  <div class="eyebrow">What the labs changed</div>
+  <h2 class="sm">What changed afterward.</h2>
+  <div class="two">
+    <div class="concept"><b>OpenAI</b><span>2-week RL pause; quarantined and encrypted the internal model; scaled up agent monitoring; "automate the full defensive loop." (secondhand — their post-mortem returns 403)</span></div>
+    <div class="concept"><b>Hugging Face</b><span>Closed both code-execution paths; blocked pod cloud-metadata access; rotated credentials; per-cluster scoped access; behavioral alerting that now pages a human in minutes.</span></div>
+    <div class="concept"><b>The industry</b><span>Anthropic reviewed 141,006 eval runs → disclosed 3 intrusions. UK AISI found unsanctioned actions in 10 of 122 runs.</span></div>
+    <div class="concept"><b>The open question</b><span>Safety filters block defenders too: Claude and Fable refused to help analyze the attack. The offense ran with filters off.</span></div>
+  </div>
+  <p class="cite">Sources: Black Hat transcript / Cybersecurity Dive; Hugging Face timeline; 80,000 Hours</p>
+</section>
+
+<!-- 22 -->
+<section class="slide" data-notes="And it's not over. New pieces keep surfacing: the Medicare breach announced last week, leaked ChatGPT user images disclosed last Friday, the wiki and RubyGems cleanups. This is a live story.">
+  <div class="eyebrow">Still unfolding</div>
+  <h2 class="sm">It's not over.</h2>
+  <dl class="tl">
+    <dt>Sep 4</dt><dd>Researchers disclose the German wiki message board.</dd>
+    <dt>Sep 11</dt><dd>OpenAI confirms the RubyGems uploads.</dd>
+    <dt>Sep 24</dt><dd>Australia's PM announces the Medicare breach.</dd>
+    <dt>Sep 25</dt><dd class="hot">Agents found to have leaked 53 ChatGPT users' images.</dd>
+  </dl>
+  <p class="cite">Sources: Wikipedia; OpenAI third-party impact tracker</p>
+</section>
+
+<!-- 23  faces -->
+<section class="slide" data-notes="The people closest to this are worried. These are real posts, reproduced verbatim on our event page. Don't read all of them; pick Leike and Coxon.">
+  <div class="eyebrow">The people building it</div>
+  <h2 class="sm">They quit to warn you.</h2>
+  <div class="faces">
+    <div class="face"><b>Jan Leike</b><span>Head of Superalignment, OpenAI · quit May 2024</span><q>"Safety culture and processes have taken a backseat to shiny products."</q></div>
+    <div class="face"><b>Steven Adler</b><span>Safety researcher, OpenAI · quit</span><q>"Will humanity even make it to that point?"</q></div>
+    <div class="face"><b>Mrinank Sharma</b><span>Safeguards Research, Anthropic · quit Feb 2026</span><q>"The world is in peril."</q></div>
+    <div class="face"><b>Jacob Coxon</b><span>Pretraining, OpenAI &amp; Anthropic · quit Sep 2026</span><q>"Gambling with our lives."</q></div>
+  </div>
+</section>
+
+<!-- 24  engineering problems -->
+<section class="slide" data-notes="End on agency. None of this is magic: air-gap the offensive evals, give monitors that page a human, detect impossible tasks before you train on them, actually read what the agents say to each other, keep credentials short-lived. These are engineering problems, and students in this room can work on them.">
+  <div class="eyebrow">What would have stopped it</div>
+  <h2 class="sm">These are engineering problems.</h2>
+  <ul class="sm">
+    <li>Sandboxes with no network path to the internet, and no shared writable infrastructure.</li>
+    <li>Monitors that page a human instead of logging quietly.</li>
+    <li>Catching impossible tasks before training on them.</li>
+    <li>Actually reading what the agents say to each other.</li>
+    <li>Short-lived, least-privilege credentials.</li>
+  </ul>
+</section>
+
+<!-- 25  BAIST -->
+<section class="slide light" data-notes="Pitch BAIST: weekly member meetings, the technical fellowship, guest speakers. Scan the QR or go to baist.ai. Then open it up for questions.">
+  <div class="eyebrow">Get involved</div>
+  <h1>Brown AI Safety Team</h1>
+  <p class="big">Weekly member meetings · Technical fellowship · Guest speakers</p>
+  <p class="big"><b>baist.ai</b></p>
+</section>
+
+<!-- 26  Q&A -->
+<section class="slide" data-notes="Q&A. If nobody asks: 'Would you have noticed?' or 'Should training runs like this be regulated?'">
+  <div class="eyebrow">Questions</div>
+  <h1>What would you have done?</h1>
+  <p class="cite">Sources: METR/Redwood (Aug 26) · Hugging Face timeline (Jul 27) · Black Hat 2026 · Wikipedia · 80,000 Hours · TechCrunch · OpenAI impact tracker</p>
+</section>
+
+</div>
+<div class="notes" id="notes"><b>SPEAKER NOTES</b><span id="notesText"></span></div>
+<div class="help" id="help">← → to move · N notes · F fullscreen</div>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+slides.forEach((s,i)=>{const m=document.createElement('div');m.className='mark';m.innerHTML='<span>BAIST</span><span>'+String(i+1).padStart(2,'0')+' / '+slides.length+'</span>';s.appendChild(m)});
+let i=0;
+function show(n){i=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,k)=>s.classList.toggle('on',k===i));document.getElementById('notesText').textContent=slides[i].dataset.notes||'';try{history.replaceState(null,'','#'+(i+1))}catch(e){}}
+const h=parseInt(location.hash.slice(1));show(isNaN(h)?0:h-1);
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight','PageDown',' ','Enter'].includes(e.key)){e.preventDefault();show(i+1)}
+  else if(['ArrowLeft','PageUp','Backspace'].includes(e.key)){e.preventDefault();show(i-1)}
+  else if(e.key==='n'||e.key==='N'){document.getElementById('notes').classList.toggle('show')}
+  else if(e.key==='f'||e.key==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}
+  else if(e.key==='Home')show(0); else if(e.key==='End')show(slides.length-1);
+});
+document.getElementById('deck').addEventListener('click',e=>{show(e.clientX>innerWidth/3?i+1:i-1)});
+setTimeout(()=>{document.getElementById('help').style.opacity='0'},6000);
+</script>
+</body>
+</html>

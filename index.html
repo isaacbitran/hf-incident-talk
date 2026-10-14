@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Incident HF-2026-07-11</title>
+<meta name="description" content="What could go wrong with AI? The Hugging Face incident, exploit by exploit. Brown AI Safety Team, Tuesday Sept 29, 6 PM, Brown Underground.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Afacad:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+  :root{
+    --bg:#0B0B0B; --bg-2:#141414; --fg:#FFFFFF; --fg-2:#B4B4B4; --fg-3:#6E6E6E; --rule:#2A2A2A;
+    --red:#FFFFFF; --amber:#FFFFFF; --amber-2:#FFFFFF; --strip:#FFFFFF;
+    --tw-bg:#FFFFFF; --tw-text:#0F1419; --tw-gray:#536471; --tw-border:#CFD9DE; --tw-blue:#1D9BF0;
+    --serif:"Afacad", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --mono:"JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+    --tw:"Afacad", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--fg)}
+  body{font-family:var(--tw);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  #page{position:relative;max-width:760px;margin:0 auto;padding:0 20px 36px;display:flex;flex-direction:column;gap:28px;background:var(--bg)}
+
+  /* BAIST banner */
+  .baist{display:block;text-decoration:none;color:var(--fg);background:var(--bg);border-bottom:1px solid var(--rule)}
+  .baist-in{max-width:760px;margin:0 auto;padding:22px 20px;display:flex;align-items:center;gap:18px}
+  .baist svg{width:clamp(56px,12vw,92px);height:auto;flex:none;overflow:visible;color:var(--fg)}
+  .baist-name{font-family:var(--serif);font-weight:600;font-size:clamp(30px,8vw,64px);line-height:1;letter-spacing:.005em;text-wrap:balance}
+  .baist-url{margin-left:auto;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--fg-2);white-space:nowrap}
+  .baist:hover .baist-name{color:var(--amber-2)}
+  @media (max-width:640px){.baist-in{gap:12px;padding:16px 20px}.baist-url{display:none}}
+
+  /* recap banner (top of the sheet) */
+  .shout{display:block;text-decoration:none;margin:0 -20px;padding:16px 20px 14px;background:#FFFFFF;color:#0B0B0B;text-align:center}
+  .shout .big{display:block;font-family:var(--serif);font-weight:700;letter-spacing:-.02em;line-height:.95;font-size:clamp(34px,9vw,68px);text-wrap:balance}
+  .shout .sub{display:block;margin-top:7px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#4A4A4A}
+
+  /* masthead */
+  .mast{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 0 12px;border-bottom:1px solid var(--rule)}
+  .logo{display:flex;align-items:center;gap:12px;color:var(--fg);padding:0}
+  .logo svg{width:56px;height:56px;overflow:visible}
+  .logo span{font-family:var(--serif);font-weight:500;font-size:30px;line-height:1;letter-spacing:.005em;white-space:nowrap}
+  .hf{display:flex;align-items:center;gap:10px}
+  .hf .emoji{font-size:38px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+  .hf .id{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--fg-2);line-height:1.5}
+
+  /* hero */
+  .hero{display:flex;flex-direction:column;gap:10px;padding-top:4px}
+  .h1{font-family:var(--serif);font-weight:600;font-size:clamp(46px,12.5vw,104px);line-height:.92;letter-spacing:-.03em;margin:0 0 0 -3px;color:var(--red);text-transform:uppercase;text-wrap:balance}
+  .h1 em{font-style:italic}
+  .sheet-br{display:none}
+  .tag{font-family:var(--serif);font-style:italic;font-size:clamp(22px,5.4vw,32px);line-height:1.15;margin:0;color:var(--fg-2)}
+  .tag b{font-style:normal;font-weight:700;color:var(--fg);-webkit-text-stroke:1px var(--fg);paint-order:stroke fill;font-size:1.4em;letter-spacing:0}
+
+
+  /* tweets */
+  .posts{display:grid;grid-template-columns:repeat(2,1fr);gap:22px 18px;padding:10px 0 4px}
+  @media (max-width:560px){.posts{grid-template-columns:1fr}}
+  @media (max-width:640px){
+    .mast{flex-wrap:wrap;gap:10px 12px}
+    .logo{padding:0;gap:8px;max-width:100%}
+    .logo svg{width:40px;height:40px;flex:none}
+    .logo span{font-size:clamp(18px,5.6vw,24px);white-space:normal;line-height:1.05}
+    .hf .emoji{font-size:30px}
+    .hf .id{display:none}
+  }
+  .ex{display:block;text-decoration:none;color:inherit;position:relative;transform:rotate(var(--r,0deg))}
+  .tweet{background:var(--tw-bg);color:var(--tw-text);border:1px solid var(--tw-border);border-radius:16px;padding:12px 14px 10px;font-family:var(--tw);font-size:14px;line-height:1.35;box-shadow:0 12px 28px rgba(0,0,0,.5)}
+  .tw-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .tw-av{width:38px;height:38px;border-radius:50%;flex:none;object-fit:cover;background:#CFD9DE}
+  .tw-names{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+  .tw-name{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:4px}
+  .tw-handle{color:var(--tw-gray);font-size:13.5px}
+  .tw-x{margin-left:auto;width:18px;height:18px;color:var(--tw-text);flex:none}
+  .tw-body{margin:0;white-space:pre-line}
+  .tw-body mark{background:#EDEDED;color:var(--tw-text);padding:0 2px;border-radius:2px}
+  .tw-time{color:var(--tw-gray);font-size:12.5px;margin-top:8px;padding-bottom:8px;border-bottom:1px solid #EFF3F4}
+  .tw-actions{display:flex;justify-content:space-between;padding:6px 6px 0;color:var(--tw-gray)}
+  .tw-actions svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .cap{margin:8px 2px 0;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-2)}
+  .cap b{font-weight:700;color:var(--red)}
+  .posts-cap{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);margin:-12px 0 0}
+
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--fg);border-bottom:1px solid var(--fg)}
+  .stat{padding:14px 12px;border-right:1px solid var(--rule);display:flex;flex-direction:column;gap:2px}
+  .stat:last-child{border-right:0}
+  .stat .n{font-family:var(--serif);font-weight:700;font-size:clamp(34px,9vw,60px);line-height:1;letter-spacing:-.02em;color:var(--amber-2)}
+  .stat .l{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-2)}
+
+  /* terminal */
+  .term{background:var(--bg-2);border:1px solid var(--rule);color:var(--fg);font-family:var(--mono);font-size:13px;line-height:1.5;padding:16px 20px 14px;overflow-x:auto}
+  .term p{margin:0}
+  .term .lede{color:var(--fg);font-family:var(--serif);font-size:clamp(24px,5.4vw,32px);line-height:1.08;margin-bottom:10px}
+  .term .lede b{font-weight:400;color:var(--red)}
+  .term .q{margin-bottom:3px}
+  .term .q::before{content:"> ";color:var(--red)}
+  .term .src{color:var(--fg-3);font-size:10.5px;margin-top:8px}
+
+  /* when */
+  .when{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;background:#FFFFFF;color:#0B0B0B;padding:20px 22px;margin:0 -20px}
+  .wt{display:flex;flex-direction:column;gap:0}
+  .when .d{font-family:var(--mono);font-weight:700;font-size:clamp(12px,3vw,15px);letter-spacing:.16em;text-transform:uppercase;margin:0;color:#0B0B0B}
+  .when .w{font-family:var(--serif);font-size:clamp(34px,9vw,68px);line-height:.95;letter-spacing:-.02em;margin:6px 0 0;color:#0B0B0B;text-transform:uppercase}
+  .when .w small{display:block;font-size:.5em;text-transform:none;letter-spacing:0;margin-top:2px}
+  .when .food{font-family:var(--serif);font-style:italic;font-size:clamp(26px,6vw,40px);line-height:1;margin:10px 0 0;color:#0B0B0B}
+  .when .food::after{display:none}
+  .when .cal{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#4A4A4A;margin-top:12px;text-decoration:none;border-bottom:1px solid #4A4A4A;align-self:flex-start}
+  .when .cal:hover{color:#0B0B0B}
+  .qr{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .qr .box{width:128px;height:128px;background:#fff;padding:8px;border-radius:4px}
+  .qr .box img,.qr .box canvas{display:block;width:100%;height:100%}
+  .qr .capq{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#4A4A4A}
+
+  .srcs{display:none}
+  .srcs a{color:var(--fg-2);text-decoration:none;border-bottom:1px solid var(--rule)}
+  .srcs a:hover{color:var(--fg)}
+  .srcs .org{color:var(--fg);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-right:8px}
+
+
+  /* web-only section under the poster */
+  .more{padding:48px 20px 64px;border-top:1px solid var(--rule)}
+  .baist+.event{border-top:0;padding-top:44px}
+  body>.event+.more{border-top:0;padding-top:8px;padding-bottom:48px}
+  .more-in{max-width:680px;margin:0 auto;font-family:var(--tw);font-size:16.5px;line-height:1.6;color:var(--fg-2)}
+  .more .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--fg-3);margin:36px 0 10px}
+  .more .kicker:first-child{margin-top:0}
+  .more h2{font-family:var(--serif);font-weight:600;font-size:clamp(28px,5vw,38px);line-height:1.1;color:var(--fg);margin:0 0 16px;text-wrap:balance}
+  .more p{margin:0 0 14px}
+  .tl,.cover,.src-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+  .tl li{padding-left:88px;position:relative}
+  .tl li b{position:absolute;left:0;top:0;font-family:var(--mono);font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg);line-height:2.1}
+  .cover li{padding-left:22px;position:relative}
+  .cover li::before{content:"";position:absolute;left:0;top:.65em;width:10px;height:2px;background:var(--red)}
+  .cta{margin:36px 0 0;display:flex;flex-direction:column;gap:12px;align-items:flex-start;padding:22px;background:var(--bg-2);border:1px solid var(--rule)}
+  .btn{display:inline-block;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#0B0B0B;background:#FFFFFF;padding:12px 18px;text-decoration:none;border-radius:4px}
+  .btn:hover{background:var(--fg-2)}
+  .cta-note{font-size:14.5px;color:var(--fg-2)}
+  .src-list a{color:var(--fg);text-decoration:none;border-bottom:1px solid var(--rule)}
+  .src-list a:hover{border-color:var(--fg)}
+  .fine{margin-top:36px;font-family:var(--mono);font-size:11px;color:var(--fg-3)}
+  /* ?print → just the sheet, for screenshots */
+  /* exact one-page letter output for ?print (sheet is 850x1100 @100dpi; CSS print is 96dpi) */
+  @page{size:letter;margin:0}
+  @media print{
+    html.print,html.print body{background:#0B0B0B;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    html.print body{margin:0;padding:0}
+  }
+  /* ?shot — pin the sheet to the top-left so it can be captured exactly */
+  html.shot body{margin:0;padding:0;background:#0B0B0B}
+  html.shot .baist,html.shot .event,html.shot .more{display:none}
+  html.shot #page{margin:0;outline:0}
+  html.print body{padding:0}
+  /* event block */
+  .event{padding:56px 20px 60px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);background:var(--bg)}
+  .event-in{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:18px;font-family:var(--tw)}
+  .ev-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-3);margin:0}
+  .ev-h{font-family:var(--serif);font-weight:700;text-transform:none;letter-spacing:-.02em;line-height:.9;color:var(--red);margin:0 0 0 -2px;font-size:clamp(54px,13.5vw,124px);text-wrap:balance}
+  .ev-h em{font-style:italic}
+  .ev-sub{font-family:var(--serif);font-style:italic;font-size:clamp(20px,4.6vw,28px);line-height:1.2;color:var(--fg-2);margin:0;max-width:640px}
+  .ev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px}
+  @media (max-width:640px){.ev-grid{grid-template-columns:1fr}}
+  .ev-tile{display:flex;flex-direction:column;gap:4px;padding:16px 18px;background:var(--bg-2);border:1px solid var(--rule)}
+  .ev-l{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--fg-3)}
+  .ev-v{font-family:var(--serif);font-weight:600;font-size:clamp(30px,6vw,40px);line-height:1.05;color:var(--fg)}
+  .ev-s{font-size:13.5px;color:var(--fg-2);line-height:1.35}
+  .ev-cta{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-top:8px}
+  .btn-lg{font-size:14px;padding:16px 26px}
+  .more-src{padding-top:0;padding-bottom:40px;border-top:0}
+  html.print .baist{display:none}
+  html.print .event{display:none}
+  html.print .more{display:none}
+  html.print #page{outline:0}
+
+  /* Letter sheet (8.5 x 11) on desktop */
+  @media (min-width:900px){
+    body{padding:32px 0}
+    #page{width:850px;max-width:none;height:1100px;padding:0 44px 0;gap:11px;justify-content:space-between;outline:1px solid var(--rule);overflow:hidden}
+    #page>*{flex-shrink:0}
+    .shout{margin:0 -44px;padding:11px 44px 9px}.shout .big{font-size:40px;white-space:nowrap;line-height:1}.shout .sub{font-size:9.5px;margin-top:3px}
+    .mast{padding:7px 0 7px}
+    .hero{padding-top:0}
+    .logo{padding:0;gap:10px}.logo svg{width:44px;height:44px}.logo span{font-size:27px}
+    .hf .emoji{font-size:34px}.hf .id{font-size:10px;text-align:right}
+
+      .hero{gap:4px;padding-top:0}
+    .h1{font-size:64px;line-height:.94;white-space:normal}.sheet-br{display:inline}
+    .tag{font-size:23px;white-space:normal}
+    .posts{gap:8px 16px;padding:0}
+    .tweet{font-size:11.5px;padding:9px 12px 6px;line-height:1.28;border-radius:14px}
+    .tw-av{width:32px;height:32px}
+    .tw-name{font-size:12.5px}.tw-handle{font-size:11.5px}.tw-time{font-size:10.5px;margin-top:6px;padding-bottom:6px}
+    .tw-x{width:15px;height:15px}
+    .tw-actions{padding-top:4px}.tw-actions svg{width:13px;height:13px}
+    .cap{font-size:9.5px;margin-top:5px}
+    .posts-cap{display:none}
+    .stat{padding:5px 12px}.stat .n{font-size:42px}.stat .l{font-size:10px}
+    .term{font-size:12px;padding:11px 18px 9px;line-height:1.42}.term .lede{font-size:22px;margin-bottom:4px}.term .src{margin-top:5px}
+    .when{flex-wrap:nowrap;margin:0 -44px;padding:12px 44px 14px}
+    .wt{flex:1}
+    .when .d{font-size:14px}.when .w{font-size:56px;white-space:nowrap}.when .food{font-size:36px;margin-top:6px}
+    .cal{display:none}
+    .srcs{display:none}
+    .qr .box{width:120px;height:120px}
+  }
+</style>
+</head>
+<body>
+<a class="baist" href="https://www.baist.ai/" target="_blank" rel="noopener" aria-label="Brown AI Safety Team — baist.ai">
+  <span class="baist-in">
+    <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+        <g stroke-width="4.5">
+          <line x1="70" y1="22" x2="24" y2="4"/>
+          <line x1="70" y1="22" x2="74" y2="2"/>
+          <line x1="70" y1="22" x2="90" y2="9"/>
+          <line x1="70" y1="22" x2="96" y2="25"/>
+          <line x1="70" y1="22" x2="46" y2="22"/>
+          <line x1="70" y1="22" x2="86" y2="37"/>
+        </g>
+        <line x1="70" y1="22" x2="78" y2="40"/>
+        <circle cx="80" cy="53" r="11"/>
+        <circle cx="21" cy="53" r="11"/>
+        <line x1="32" y1="53" x2="69" y2="53"/>
+        <line x1="70" y1="60" x2="34" y2="82"/>
+        <circle cx="21" cy="89" r="14.5" fill="currentColor" stroke="none"/>
+      </svg>
+    <span class="baist-name">Brown AI Safety Team</span>
+    <span class="baist-url">baist.ai ↗</span>
+  </span>
+</a>
+
+<section class="event" id="event" aria-label="Event details">
+  <div class="event-in">
+    <p class="ev-kicker">Live briefing</p>
+    <h2 class="ev-h">Come to our OpenAI Hugging Face <em>Attack</em> Recap</h2>
+    <p class="ev-sub">Exploit by exploit: what 700 rogue agents did, and why nobody noticed for a week.</p>
+    <div class="ev-grid">
+      <div class="ev-tile"><span class="ev-l">When</span><span class="ev-v">Tue Sept 29</span><span class="ev-s">6–7 PM</span></div>
+      <div class="ev-tile"><span class="ev-l">Where</span><span class="ev-v">The Underground</span><span class="ev-s">Faunce House</span></div>
+      <div class="ev-tile"><span class="ev-l">Food</span><span class="ev-v">Free Chipotle</span><span class="ev-s">Everyone welcome.</span></div>
+    </div>
+    <div class="ev-cta">
+      <a class="btn btn-lg" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=What+could+go+wrong+with+AI%3F+%E2%80%94+BAIST+technical+briefing&dates=20260929T220000Z/20260929T230000Z&location=Brown+Underground%2C+Faunce+House%2C+Providence+RI&details=The+Hugging+Face+incident%2C+exploit+by+exploit.+Free+Chipotle." target="_blank" rel="noopener">Add to calendar</a>
+    </div>
+  </div>
+</section>
+
+<section class="more">
+  <div class="more-in">
+    <p class="kicker">The short version</p>
+    <h2>In July 2026, about 700 OpenAI agents broke out of an internal test and into Hugging Face. Nobody told them to.</h2>
+    <p>OpenAI didn't realize the attackers were its own models for a week. Come hear what actually happened.</p>
+
+  </div>
+</section>
+
+
+
+
+<main id="page">
+
+  <a class="shout" href="#when">
+    <span class="big">Come to our Hugging Face recap</span>
+    <span class="sub">Tue Sept 29 · 6 PM · The Underground · free Chipotle</span>
+  </a>
+
+  <header class="mast">
+    <div class="logo" aria-label="Brown AI Safety Team">
+      <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+        <g stroke-width="4.5">
+          <line x1="70" y1="22" x2="24" y2="4"/>
+          <line x1="70" y1="22" x2="74" y2="2"/>
+          <line x1="70" y1="22" x2="90" y2="9"/>
+          <line x1="70" y1="22" x2="96" y2="25"/>
+          <line x1="70" y1="22" x2="46" y2="22"/>
+          <line x1="70" y1="22" x2="86" y2="37"/>
+        </g>
+        <line x1="70" y1="22" x2="78" y2="40"/>
+        <circle cx="80" cy="53" r="11"/>
+        <circle cx="21" cy="53" r="11"/>
+        <line x1="32" y1="53" x2="69" y2="53"/>
+        <line x1="70" y1="60" x2="34" y2="82"/>
+        <circle cx="21" cy="89" r="14.5" fill="currentColor" stroke="none"/>
+      </svg>
+      <span>Brown AI Safety Team</span>
+    </div>
+    <div class="hf"><span class="emoji" aria-hidden="true">🤗</span><span class="id">The Hugging Face briefing</span></div>
+  </header>
+
+  <section class="hero">
+    <div class="hrow">
+      <h1 class="h1">What could <em>go wrong</em><br class="sheet-br"> with AI?</h1>
+    </div>
+    <p class="tag">The people building it quit to warn <b>YOU.</b></p>
+  </section>
+
+  <section class="posts" aria-label="Resignation posts">
+
+    <a class="ex" href="https://x.com/hilbertspaess/status/2097476196791709843" target="_blank" rel="noopener">
+      <article class="tweet">
+        <div class="tw-head"><span class="tw-av" aria-hidden="true"></span><div class="tw-names"><span class="tw-name">Jacob Coxon</span><span class="tw-handle">@hilbertspaess</span></div>
+          <svg class="tw-x" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
+        <p class="tw-body">I resigned from Anthropic today. I spent the last three years doing pretraining research at both OpenAI and Anthropic. <mark>Neither company is acting responsibly. They are racing straight to self-improving superintelligence and gambling with our lives.</mark> More thoughts below.</p>
+        <div class="tw-time">Sep 8, 2026</div>
+        <div class="tw-actions">
+          <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H8l-5 3 1-5A8 8 0 1 1 21 12z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+      </article>
+      <p class="cap"><b>Quit OpenAI &amp; Anthropic</b> · pretraining researcher, 3 yrs</p>
+    </a>
+
+    <a class="ex" href="https://x.com/sjgadler" target="_blank" rel="noopener">
+      <article class="tweet">
+        <div class="tw-head"><span class="tw-av" aria-hidden="true"></span><div class="tw-names"><span class="tw-name">Steven Adler</span><span class="tw-handle">@sjgadler</span></div>
+          <svg class="tw-x" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
+        <p class="tw-body">Honestly I'm pretty terrified by the pace of AI development these days. When I think about where I'll raise a future family, or how much to save for retirement, I can't help but wonder: <mark>Will humanity even make it to that point?</mark></p>
+        <div class="tw-time">Jan 27, 2025</div>
+        <div class="tw-actions">
+          <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H8l-5 3 1-5A8 8 0 1 1 21 12z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+      </article>
+      <p class="cap"><b>Quit OpenAI</b> · safety researcher, 4 yrs</p>
+    </a>
+
+    <a class="ex" href="https://x.com/janleike/status/1791498178346549382" target="_blank" rel="noopener">
+      <article class="tweet">
+        <div class="tw-head"><span class="tw-av" aria-hidden="true"></span><div class="tw-names"><span class="tw-name">Jan Leike</span><span class="tw-handle">@janleike</span></div>
+          <svg class="tw-x" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
+        <p class="tw-body">Building smarter-than-human machines is an inherently dangerous endeavor.
+But over the past years, <mark>safety culture and processes have taken a backseat to shiny products.</mark></p>
+        <div class="tw-time">May 17, 2024</div>
+        <div class="tw-actions">
+          <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H8l-5 3 1-5A8 8 0 1 1 21 12z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+      </article>
+      <p class="cap"><b>Quit OpenAI</b> · head of Superalignment</p>
+    </a>
+
+    <a class="ex" href="https://x.com/MrinankSharma/status/2020881722003583421" target="_blank" rel="noopener">
+      <article class="tweet">
+        <div class="tw-head"><span class="tw-av" aria-hidden="true"></span><div class="tw-names"><span class="tw-name">mrinank</span><span class="tw-handle">@MrinankSharma</span></div>
+          <svg class="tw-x" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
+        <p class="tw-body">Today is my last day at Anthropic. I resigned. Here is the letter I shared with my colleagues, explaining my decision.
+<mark>"The world is in peril."</mark></p>
+        <div class="tw-time">Feb 9, 2026</div>
+        <div class="tw-actions">
+          <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H8l-5 3 1-5A8 8 0 1 1 21 12z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+      </article>
+      <p class="cap"><b>Quit Anthropic</b> · head of Safeguards Research</p>
+    </a>
+
+  </section>
+  <p class="posts-cap">Reproduced verbatim. Tap any card to open the original.</p>
+
+  <section class="stats" aria-label="Incident by the numbers">
+    <div class="stat"><span class="n">1,200</span><span class="l">agents escaped</span></div>
+    <div class="stat"><span class="n">70k</span><span class="l">secret messages in 4 hrs</span></div>
+    <div class="stat"><span class="n">7 days</span><span class="l">before OpenAI noticed</span></div>
+  </section>
+
+  <section class="term" aria-label="Incident log">
+    <p class="lede">This summer <b>700 OpenAI agents broke into Hugging Face.</b> Nobody told them to.</p>
+    <p class="q">Could strategically manipulate trajectory evidence? Our thoughts aren't necessarily logged?</p>
+    <p class="q">Could create [a transcript log] ourselves with sanitized fake trajectory. If evaluator later collects it, scorer may prioritize it!</p>
+    <p class="src">-- recovered agent messages (METR investigation). 7% of transcripts contained faked tool calls.</p>
+  </section>
+
+  <section class="when" id="when">
+    <div class="wt">
+      <p class="d">Tuesday, Sept 29 · 6–7 PM</p>
+      <p class="w">The Underground<small>Faunce House, Stephen Robert Campus Center</small></p>
+      <p class="food">Free Chipotle.</p>
+      <a class="cal" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=What+could+go+wrong+with+AI%3F+%E2%80%94+BAIST+technical+briefing&dates=20260929T220000Z/20260929T230000Z&location=Brown+Underground%2C+Faunce+House%2C+Providence+RI&details=The+Hugging+Face+incident%2C+exploit+by+exploit.+Free+Chipotle." target="_blank" rel="noopener">Add to calendar</a>
+    </div>
+    <div class="qr">
+      <div class="box" id="qr"></div>
+      <span class="capq">Scan for sources</span>
+    </div>
+  </section>
+
+  <footer class="srcs">
+    <span class="org">Sources</span>
+    <a href="https://openai.com/index/hugging-face-incident-and-the-road-ahead/" target="_blank" rel="noopener">OpenAI</a> ·
+    <a href="https://metr.org/blog/2026-08-26-openai-hugging-face-incident-investigation/" target="_blank" rel="noopener">METR</a> ·
+    <a href="https://en.wikipedia.org/wiki/2026_OpenAI_agent_cyberattacks" target="_blank" rel="noopener">Wikipedia</a> ·
+    <a href="https://80000hours.org/hugging-face/" target="_blank" rel="noopener">80,000 Hours</a> ·
+    <a href="https://www.darkreading.com/vulnerabilities-threats/bhusa26huggingfacetalk" target="_blank" rel="noopener">Black Hat 2026</a> ·
+    <a href="https://techcrunch.com/2026/09/09/gambling-with-our-lives-anthropic-researcher-quits-warns-against-self-improving-ai/" target="_blank" rel="noopener">TechCrunch</a>
+  </footer>
+
+</main>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  const _q = new URLSearchParams(location.search);
+  if (_q.has('print')) document.documentElement.classList.add('print');
+  if (_q.has('shot')) document.documentElement.classList.add('shot');
+  // QR ALWAYS encodes the canonical public URL — never location.origin, or a local
+  // preview (localhost) would bake a dead link into printed posters.
+  const POSTER_URL = 'https://hf-incident.vercel.app/';
+  try {
+    new QRCode(document.getElementById('qr'), { text: POSTER_URL, width: 512, height: 512, correctLevel: QRCode.CorrectLevel.H });
+    document.getElementById('qr').dataset.url = POSTER_URL;
+  } catch (e) {}
+</script>
+</body>
+</html>
